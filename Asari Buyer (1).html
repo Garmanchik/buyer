@@ -1,0 +1,724 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Asari Buyer</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg:        #080e08;
+  --bg2:       #0e160e;
+  --bg3:       #162016;
+  --card:      #182818;
+  --card2:     #1d321d;
+  --border:    #253c25;
+  --green:     #4ade80;
+  --green2:    #22c55e;
+  --green3:    #16a34a;
+  --green4:    #14532d;
+  --glow:      rgba(74,222,128,.18);
+  --muted:     #4a6a4a;
+  --fg:        #e0f0e0;
+  --fg2:       #9aba9a;
+  --fg3:       #618061;
+  --red:       #f87171;
+  --gold:      #fbbf24;
+  --radius:    14px;
+  --radius-s:  8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  background:var(--bg);
+  color:var(--fg);
+  font-family:'Inter',system-ui,sans-serif;
+  font-size:14px;
+  -webkit-font-smoothing:antialiased;
+  display:flex;flex-direction:column;
+}
+
+/* scroll area */
+#app{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom,20px);scrollbar-width:none}
+#app::-webkit-scrollbar{display:none}
+
+/* header */
+.hdr{
+  position:sticky;top:0;z-index:50;
+  background:var(--bg);border-bottom:1px solid var(--border);
+  padding:12px 16px 0;flex-shrink:0;
+}
+.hdr-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.hdr-av{
+  width:38px;height:38px;border-radius:50%;
+  background:linear-gradient(135deg,var(--green3),var(--green4));
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:800;color:#fff;flex-shrink:0;
+}
+.hdr-info{flex:1;min-width:0}
+.hdr-name{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr-bal{font-size:12px;color:var(--green);font-weight:600;margin-top:1px}
+.hdr-lvl{
+  background:linear-gradient(135deg,var(--green3),var(--green4));
+  color:#fff;font-size:11px;font-weight:700;
+  padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0;
+}
+.tabs{display:flex;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  flex:0 0 auto;padding:8px 16px;
+  font-size:13px;font-weight:600;color:var(--fg3);cursor:pointer;
+  border:none;border-bottom:2px solid transparent;
+  background:none;outline:none;white-space:nowrap;
+  transition:color .2s,border-color .2s;
+}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+
+/* sections */
+.sec{display:none;padding:16px}
+.sec.active{display:block}
+
+/* card */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.card-ttl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--fg3);margin-bottom:12px}
+
+/* ─── Profile ─── */
+.prof-hero{
+  background:linear-gradient(135deg,#0b1c0b,#183018);
+  border:1px solid var(--green3);border-radius:var(--radius);
+  padding:20px 16px;margin-bottom:12px;
+  position:relative;overflow:hidden;
+}
+.prof-hero::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 70% 20%,var(--glow),transparent 60%);
+  pointer-events:none;
+}
+.prof-av{
+  width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(135deg,var(--green2),var(--green4));
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;font-weight:900;color:#fff;
+  margin:0 auto 10px;
+  border:3px solid var(--green);
+  box-shadow:0 0 20px var(--glow);
+}
+.prof-name{text-align:center;font-size:18px;font-weight:800;margin-bottom:4px}
+.prof-rank{text-align:center;font-size:13px;color:var(--green);font-weight:600;margin-bottom:14px}
+.xp-bg{height:6px;border-radius:3px;background:var(--bg3)}
+.xp-fill{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--green3),var(--green));transition:width .6s ease}
+.xp-lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--fg3);margin-top:4px}
+.prof-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.pst{background:var(--bg3);border-radius:var(--radius-s);padding:10px 8px;text-align:center}
+.pst-v{font-size:16px;font-weight:800;color:var(--green)}
+.pst-l{font-size:10px;color:var(--fg3);margin-top:2px;font-weight:500}
+.ref-row{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px;
+}
+.ref-ico{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--glow);border:1px solid var(--green3);
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
+}
+.ref-ttl{font-size:13px;font-weight:700}
+.ref-sub{font-size:12px;color:var(--fg3);margin-top:2px}
+.arr{font-size:18px;color:var(--green)}
+
+/* ─── Wheel ─── */
+.wheel-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;padding:8px 0 20px}
+#wCanvas{border-radius:50%;box-shadow:0 0 40px var(--glow),0 0 80px #00080044;display:block}
+.spin-btn{
+  background:linear-gradient(135deg,var(--green2),var(--green3));
+  color:#fff;font-size:16px;font-weight:800;
+  padding:14px 40px;border-radius:30px;border:none;cursor:pointer;
+  box-shadow:0 4px 20px rgba(34,197,94,.35);
+  transition:transform .1s,box-shadow .1s;letter-spacing:.5px;
+}
+.spin-btn:active{transform:scale(.97)}
+.spin-btn:disabled{background:var(--bg3);color:var(--fg3);box-shadow:none;cursor:default}
+.spin-tmr{font-size:13px;color:var(--fg3);text-align:center}
+.win-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);animation:fadeIn .3s ease}
+.win-row:last-child{border-bottom:none}
+.win-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--green3),var(--green4));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.win-name{font-size:13px;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.win-prize{font-size:13px;font-weight:700;color:var(--green);white-space:nowrap}
+
+/* ─── Tasks ─── */
+.tasks-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.tasks-hdr-ttl{font-size:16px;font-weight:800}
+.tasks-tmr{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--green);background:var(--glow);border:1px solid var(--green3);padding:4px 10px;border-radius:20px}
+.task-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;transition:border-color .2s}
+.task-card.done{border-color:var(--green3);background:linear-gradient(135deg,#182818,#1d3020)}
+.task-card.claimed{opacity:.6}
+.task-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}
+.task-ico{width:38px;height:38px;border-radius:var(--radius-s);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:var(--bg3)}
+.task-info{flex:1;min-width:0}
+.task-ttl{font-size:14px;font-weight:700;margin-bottom:3px}
+.task-dsc{font-size:12px;color:var(--fg3);line-height:1.4}
+.task-rwd{font-size:14px;font-weight:800;color:var(--green);white-space:nowrap}
+.tpb{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.tpbf{height:4px;border-radius:2px;background:linear-gradient(90deg,var(--green3),var(--green));transition:width .4s ease}
+.tpr{display:flex;justify-content:space-between;margin-top:5px}
+.tpt{font-size:11px;color:var(--fg3)}
+.tclaim{
+  width:100%;margin-top:10px;
+  background:linear-gradient(135deg,var(--green2),var(--green3));
+  color:#fff;font-size:13px;font-weight:700;
+  padding:9px 0;border-radius:var(--radius-s);border:none;cursor:pointer;
+  transition:opacity .15s;
+}
+.tclaim:hover{opacity:.9}
+.tclaim.done-btn{background:var(--bg3);color:var(--fg3);cursor:default}
+.tasks-empty{text-align:center;color:var(--fg3);padding:40px 20px;font-size:14px}
+.tasks-empty .em{font-size:40px;margin-bottom:10px}
+
+/* ─── History ─── */
+.h-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.h-item:last-child{border-bottom:none}
+.h-ico{width:36px;height:36px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.h-info{flex:1;min-width:0}
+.h-ttl{font-size:13px;font-weight:600}
+.h-t{font-size:11px;color:var(--fg3);margin-top:2px}
+.h-amt{font-size:14px;font-weight:700;color:var(--green);white-space:nowrap}
+.h-amt.neg{color:var(--red)}
+
+/* loading */
+.ld{display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;gap:12px}
+.spin{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+/* toast */
+#toast{
+  position:fixed;bottom:80px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--card2);border:1px solid var(--green3);
+  color:var(--fg);font-size:13px;font-weight:600;
+  padding:10px 20px;border-radius:30px;
+  pointer-events:none;opacity:0;z-index:100;white-space:nowrap;
+  box-shadow:0 4px 20px #00000044;
+  transition:opacity .2s,transform .2s;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="hdr-av" id="hAvatar">A</div>
+    <div class="hdr-info">
+      <div class="hdr-name" id="hName">Загрузка…</div>
+      <div class="hdr-bal" id="hBal">— ₽</div>
+    </div>
+    <div class="hdr-lvl" id="hLvl">Lv 1</div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="profile">👤 Профиль</button>
+    <button class="tab" data-tab="wheel">🎰 Колесо</button>
+    <button class="tab" data-tab="tasks">📋 Задания</button>
+    <button class="tab" data-tab="history">📜 История</button>
+  </nav>
+</div>
+
+<div id="app">
+
+  <!-- Profile -->
+  <div class="sec active" id="sec-profile">
+    <div class="ld" id="profLd"><div class="spin"></div></div>
+    <div id="profCnt" style="display:none">
+      <div class="prof-hero">
+        <div class="prof-av" id="pAvatar">A</div>
+        <div class="prof-name" id="pName">—</div>
+        <div class="prof-rank" id="pRank">🌱 Новичок</div>
+        <div class="xp-bg"><div class="xp-fill" id="xpF" style="width:0%"></div></div>
+        <div class="xp-lbl"><span id="xpCur">0</span><span id="xpNxt">— до след. уровня</span></div>
+        <div class="prof-stats">
+          <div class="pst"><div class="pst-v" id="stCook">0</div><div class="pst-l">Куков</div></div>
+          <div class="pst"><div class="pst-v" id="stEarn">0 ₽</div><div class="pst-l">Заработано</div></div>
+          <div class="pst"><div class="pst-v" id="stSale">0</div><div class="pst-l">Продаж</div></div>
+        </div>
+      </div>
+      <div class="ref-row">
+        <div class="ref-ico">👥</div>
+        <div class="ref-info">
+          <div class="ref-ttl">Рефералы</div>
+          <div class="ref-sub" id="refCnt">0 приглашённых</div>
+        </div>
+        <div class="arr">›</div>
+      </div>
+      <div class="ref-row">
+        <div class="ref-ico">💰</div>
+        <div class="ref-info">
+          <div class="ref-ttl">Реферальный доход</div>
+          <div class="ref-sub" id="refEarn">0 ₽</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wheel -->
+  <div class="sec" id="sec-wheel">
+    <div class="card">
+      <div class="card-ttl">Колесо фортуны</div>
+      <div class="wheel-wrap">
+        <canvas id="wCanvas" width="280" height="280"></canvas>
+        <button class="spin-btn" id="spinBtn">🎯 Крутить!</button>
+        <div class="spin-tmr" id="spinTmr"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-ttl">🏆 Последние выигрыши</div>
+      <div id="winsList"></div>
+    </div>
+  </div>
+
+  <!-- Tasks -->
+  <div class="sec" id="sec-tasks">
+    <div class="tasks-hdr">
+      <div class="tasks-hdr-ttl">Задания</div>
+      <div class="tasks-tmr">⏱ <span id="dTimer">—</span></div>
+    </div>
+    <div id="taskList"><div class="ld"><div class="spin"></div></div></div>
+  </div>
+
+  <!-- History -->
+  <div class="sec" id="sec-history">
+    <div class="card">
+      <div class="card-ttl">История операций</div>
+      <div id="histList"><div class="ld"><div class="spin"></div></div></div>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<!-- Telegram WebApp SDK (inline polyfill — реальный SDK загружается через Telegram, здесь заглушка для превью) -->
+<script>
+window.Telegram = window.Telegram || { WebApp: {
+  ready: function(){}, expand: function(){},
+  initDataUnsafe: {},
+  close: function(){},
+  BackButton: { show: function(){}, hide: function(){} },
+} };
+</script>
+<script>
+/* ── Telegram init ── */
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+const userId   = tg?.initDataUnsafe?.user?.id   ?? null;
+const userName = tg?.initDataUnsafe?.user?.first_name ?? 'Пользователь';
+
+/* ── API ──
+   Смените BASE_URL на адрес вашего VPS + порт бэкенда (api.py).
+   Например: "http://123.45.67.89:8001"
+   При локальной разработке оставьте пустую строку "".
+*/
+const BASE_URL = 'https://YOUR_VPS_IP:8001';
+
+async function apiFetch(path, opts = {}) {
+  try {
+    const r = await fetch(BASE_URL + path, {
+      ...opts,
+      headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) }
+    });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
+}
+
+/* ── Level / rank system ── */
+const RANKS = [
+  { min: 0,    label: '🌱 Новичок' },
+  { min: 100,  label: '🍪 Продавец' },
+  { min: 500,  label: '⚡ Активист' },
+  { min: 1500, label: '🔥 Профи' },
+  { min: 5000, label: '💎 Легенда' },
+];
+const LVL_THRESHOLDS = [0, 50, 150, 300, 500, 800, 1200, 1800, 2500, 5000];
+
+function getLevel(cookies) {
+  let lv = 1;
+  for (let i = 0; i < LVL_THRESHOLDS.length; i++) {
+    if (cookies >= LVL_THRESHOLDS[i]) lv = i + 1;
+  }
+  return lv;
+}
+function getXpInfo(cookies) {
+  const th = [...LVL_THRESHOLDS, Infinity];
+  let idx = 0;
+  for (let i = 0; i < th.length - 1; i++) if (cookies >= th[i]) idx = i;
+  const prev = th[idx], next = th[idx + 1];
+  const pct = next === Infinity ? 100 : Math.round(((cookies - prev) / (next - prev)) * 100);
+  const left = next === Infinity ? '∞' : `${next - cookies} куков`;
+  return { pct, left };
+}
+function getRank(cookies) {
+  let r = RANKS[0];
+  for (const rk of RANKS) if (cookies >= rk.min) r = rk;
+  return r;
+}
+
+/* ── Demo data ── */
+function demoProfile() {
+  return {
+    username: userName, balance: 347.50,
+    total_earned: 1820.0, total_cookies: 214,
+    total_sales: 38, referrals: [1, 2, 3],
+    referral_earnings: 91.0,
+    history: [
+      { type: 'sale',     amount: 87.5,  cookies: 7,  time: new Date(Date.now()-3e6).toISOString() },
+      { type: 'sale',     amount: 50.0,  cookies: 4,  time: new Date(Date.now()-8e6).toISOString() },
+      { type: 'task',     amount: 25.0,  title: 'Задание',  time: new Date(Date.now()-15e6).toISOString() },
+      { type: 'withdraw', amount: -200,               time: new Date(Date.now()-86400000).toISOString() },
+      { type: 'sale',     amount: 125.0, cookies: 10, time: new Date(Date.now()-172800000).toISOString() },
+    ]
+  };
+}
+function demoTasks() {
+  return [
+    { id:'1', title:'Сдать 10 куков',     description:'Сдай 10 Roblox кук через бота', type:'sell_cookies',  goal:10,  reward:25.0,  active:true, progress:7,   claimed:false },
+    { id:'2', title:'Заработать 500 ₽',   description:'Накопи 500 ₽ с продаж',        type:'sell_amount',   goal:500, reward:50.0,  active:true, progress:347, claimed:false },
+    { id:'3', title:'Пригласить 3 друзей',description:'Пригласи 3 реферала',          type:'invite_refs',   goal:3,   reward:75.0,  active:true, progress:3,   claimed:false },
+    { id:'4', title:'Сделать вывод',       description:'Выведи деньги один раз',       type:'make_withdraw', goal:1,   reward:15.0,  active:true, progress:1,   claimed:true  },
+  ];
+}
+
+/* ── Profile ── */
+let profileCache = null;
+
+async function loadProfile() {
+  let d = null;
+  if (userId) d = await apiFetch(`/api/profile?user_id=${userId}`);
+  if (!d) d = demoProfile();
+  profileCache = d;
+  renderProfile(d);
+}
+
+function renderProfile(d) {
+  const name    = d.username || userName || 'Asari';
+  const init    = name[0].toUpperCase();
+  const cookies = d.total_cookies ?? 0;
+  const earned  = d.total_earned  ?? 0;
+  const sales   = d.total_sales   ?? 0;
+  const refs    = d.referrals?.length ?? 0;
+  const refE    = d.referral_earnings ?? 0;
+  const bal     = d.balance ?? 0;
+  const lv      = getLevel(cookies);
+  const xp      = getXpInfo(cookies);
+  const rank    = getRank(cookies);
+
+  qs('#hAvatar').textContent = init;
+  qs('#hName').textContent   = name;
+  qs('#hBal').textContent    = `${bal.toFixed(2)} ₽`;
+  qs('#hLvl').textContent    = `Lv ${lv}`;
+
+  qs('#pAvatar').textContent = init;
+  qs('#pName').textContent   = name;
+  qs('#pRank').textContent   = rank.label;
+  qs('#xpF').style.width     = xp.pct + '%';
+  qs('#xpCur').textContent   = `${cookies} куков`;
+  qs('#xpNxt').textContent   = `${xp.left} до ур. ${lv + 1}`;
+
+  qs('#stCook').textContent  = cookies;
+  qs('#stEarn').textContent  = `${earned.toFixed(0)} ₽`;
+  qs('#stSale').textContent  = sales;
+  qs('#refCnt').textContent  = `${refs} приглашённых`;
+  qs('#refEarn').textContent = `${refE.toFixed(2)} ₽`;
+
+  qs('#profLd').style.display  = 'none';
+  qs('#profCnt').style.display = 'block';
+}
+
+/* ── Wheel ── */
+const PRIZES = [
+  { label:'5 ₽',   value:5,   color:'#14532d' },
+  { label:'10 ₽',  value:10,  color:'#15803d' },
+  { label:'25 ₽',  value:25,  color:'#166534' },
+  { label:'50 ₽',  value:50,  color:'#14532d' },
+  { label:'2 ₽',   value:2,   color:'#15803d' },
+  { label:'100 ₽', value:100, color:'#166534' },
+  { label:'7 ₽',   value:7,   color:'#14532d' },
+  { label:'20 ₽',  value:20,  color:'#15803d' },
+];
+const SPIN_CD = 24 * 3600 * 1000;
+let wAngle = 0, wSpinning = false, cdInterval = null;
+
+function drawWheel(angle) {
+  const cvs = qs('#wCanvas');
+  const ctx = cvs.getContext('2d');
+  const W = cvs.width, cx = W/2, cy = W/2, r = W/2 - 4;
+  const n = PRIZES.length, arc = Math.PI * 2 / n;
+  ctx.clearRect(0, 0, W, W);
+  for (let i = 0; i < n; i++) {
+    const a = angle + arc * i - Math.PI / 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, a, a + arc);
+    ctx.closePath();
+    ctx.fillStyle = PRIZES[i].color;
+    ctx.fill();
+    ctx.strokeStyle = '#080e08';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(a + arc / 2);
+    ctx.fillStyle = '#e0f0e0';
+    ctx.font = 'bold 13px Inter,sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(PRIZES[i].label, r - 8, 5);
+    ctx.restore();
+  }
+  // center
+  ctx.beginPath();
+  ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+  ctx.fillStyle = '#080e08';
+  ctx.fill();
+  ctx.strokeStyle = '#4ade80';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  // pointer
+  ctx.beginPath();
+  ctx.moveTo(cx, 5);
+  ctx.lineTo(cx - 9, 20);
+  ctx.lineTo(cx + 9, 20);
+  ctx.closePath();
+  ctx.fillStyle = '#4ade80';
+  ctx.fill();
+}
+drawWheel(0);
+
+function updateCooldownUI() {
+  let last = 0;
+  try { last = +localStorage.getItem('wheelSpin') || 0; } catch {}
+  const diff = SPIN_CD - (Date.now() - last);
+  const btn = qs('#spinBtn'), tmr = qs('#spinTmr');
+  clearInterval(cdInterval);
+  if (diff <= 0 || !last) {
+    btn.disabled = false;
+    tmr.textContent = 'Доступно сейчас!';
+    return;
+  }
+  btn.disabled = true;
+  cdInterval = setInterval(() => {
+    const d = SPIN_CD - (Date.now() - last);
+    if (d <= 0) { clearInterval(cdInterval); updateCooldownUI(); return; }
+    const h = String(Math.floor(d / 3600000)).padStart(2,'0');
+    const m = String(Math.floor((d % 3600000) / 60000)).padStart(2,'0');
+    const s = String(Math.floor((d % 60000) / 1000)).padStart(2,'0');
+    tmr.textContent = `Следующий спин: ${h}:${m}:${s}`;
+  }, 1000);
+}
+
+function spinWheel() {
+  if (wSpinning) return;
+  wSpinning = true;
+  qs('#spinBtn').disabled = true;
+  const n = PRIZES.length, arc = Math.PI * 2 / n;
+  const prizeIdx = Math.floor(Math.random() * n);
+  const spins = 5;
+  const delta = Math.PI * 2 * spins - prizeIdx * arc;
+  const start = wAngle, dur = 4200;
+  let t0 = null;
+  function ease(t) { return 1 - Math.pow(1 - t, 4); }
+  function frame(ts) {
+    if (!t0) t0 = ts;
+    const p = Math.min((ts - t0) / dur, 1);
+    wAngle = start + delta * ease(p);
+    drawWheel(wAngle);
+    if (p < 1) { requestAnimationFrame(frame); return; }
+    wAngle %= Math.PI * 2;
+    wSpinning = false;
+    try { localStorage.setItem('wheelSpin', Date.now()); } catch {}
+    updateCooldownUI();
+    const prize = PRIZES[prizeIdx];
+    prependWin('Вы', prize.label);
+    toast(`🎉 Вы выиграли ${prize.label}!`);
+  }
+  requestAnimationFrame(frame);
+}
+
+qs('#spinBtn').addEventListener('click', spinWheel);
+updateCooldownUI();
+
+function prependWin(name, prize) {
+  const el = qs('#winsList');
+  const row = document.createElement('div');
+  row.className = 'win-row';
+  row.innerHTML = `<div class="win-av">${name[0].toUpperCase()}</div><div class="win-name">${name}</div><div class="win-prize">${prize}</div>`;
+  el.prepend(row);
+}
+// demo wins feed
+[{n:'Иван К.',p:'50 ₽'},{n:'Лиса',p:'10 ₽'},{n:'Ghost',p:'25 ₽'},{n:'Катя',p:'100 ₽'},{n:'Max_99',p:'7 ₽'}]
+  .forEach(({n,p}) => {
+    const el = qs('#winsList');
+    const row = document.createElement('div');
+    row.className = 'win-row';
+    row.innerHTML = `<div class="win-av">${n[0]}</div><div class="win-name">${n}</div><div class="win-prize">${p}</div>`;
+    el.append(row);
+  });
+
+/* ── Tasks ── */
+const ICONS = { sell_cookies:'🍪', sell_amount:'💰', invite_refs:'👥', make_withdraw:'💸' };
+let tasksCache = [];
+
+async function loadTasks() {
+  let d = null;
+  if (userId) d = await apiFetch(`/api/tasks?user_id=${userId}`);
+  if (!d) d = demoTasks();
+  tasksCache = d;
+  renderTasks();
+}
+
+function renderTasks() {
+  const el = qs('#taskList');
+  if (!tasksCache.length) {
+    el.innerHTML = '<div class="tasks-empty"><div class="em">📭</div>Заданий пока нет.<br>Скоро появятся новые!</div>';
+    return;
+  }
+  el.innerHTML = '';
+  for (const t of tasksCache) {
+    const pct  = Math.min(100, Math.round((t.progress / t.goal) * 100));
+    const done = t.progress >= t.goal;
+    const ico  = ICONS[t.type] || '📌';
+    const c = document.createElement('div');
+    c.className = 'task-card' + (done && !t.claimed ? ' done' : '') + (t.claimed ? ' claimed' : '');
+    c.innerHTML = `
+      <div class="task-top">
+        <div class="task-ico">${ico}</div>
+        <div class="task-info">
+          <div class="task-ttl">${t.title}</div>
+          <div class="task-dsc">${t.description || ''}</div>
+        </div>
+        <div class="task-rwd">+${t.reward} ₽</div>
+      </div>
+      <div class="tpb"><div class="tpbf" style="width:${pct}%"></div></div>
+      <div class="tpr">
+        <span class="tpt">${t.progress} / ${t.goal}</span>
+        <span class="tpt">${pct}%</span>
+      </div>
+      ${done && !t.claimed ? `<button class="tclaim" data-id="${t.id}">Забрать награду</button>` : ''}
+      ${t.claimed ? `<button class="tclaim done-btn" disabled>✓ Получено</button>` : ''}
+    `;
+    el.appendChild(c);
+  }
+  el.querySelectorAll('.tclaim:not(.done-btn)').forEach(b => {
+    b.addEventListener('click', () => claimTask(b.dataset.id));
+  });
+}
+
+async function claimTask(id) {
+  let res = null;
+  if (userId) res = await apiFetch('/api/claim', {
+    method: 'POST',
+    body: JSON.stringify({ user_id: userId, task_id: id })
+  });
+  if (res?.ok || !userId) {
+    const t = tasksCache.find(x => x.id === id);
+    if (t) {
+      const rwd = res?.reward ?? t.reward;
+      t.claimed = true;
+      toast(`✅ Получено +${rwd} ₽!`);
+      if (profileCache) {
+        profileCache.balance = (profileCache.balance ?? 0) + rwd;
+        qs('#hBal').textContent = `${profileCache.balance.toFixed(2)} ₽`;
+      }
+      renderTasks();
+    }
+  } else {
+    toast('❌ Не удалось получить награду');
+  }
+}
+
+// daily reset countdown
+(function tickDaily() {
+  const now = new Date();
+  const mid = new Date(now); mid.setHours(24,0,0,0);
+  const d = mid - now;
+  const h = String(Math.floor(d/3600000)).padStart(2,'0');
+  const m = String(Math.floor((d%3600000)/60000)).padStart(2,'0');
+  const s = String(Math.floor((d%60000)/1000)).padStart(2,'0');
+  qs('#dTimer').textContent = `${h}:${m}:${s}`;
+  setTimeout(tickDaily, 1000);
+})();
+
+/* ── History ── */
+async function loadHistory() {
+  let d = null;
+  if (userId) d = await apiFetch(`/api/profile?user_id=${userId}`);
+  const hist = (d?.history ?? demoProfile().history).slice().reverse();
+  renderHistory(hist);
+}
+
+function renderHistory(items) {
+  const el = qs('#histList');
+  if (!items.length) {
+    el.innerHTML = '<div style="color:var(--fg3);text-align:center;padding:30px">История пуста</div>';
+    return;
+  }
+  el.innerHTML = '';
+  for (const h of items.slice(0, 50)) {
+    const plus = h.amount > 0;
+    const ico  = h.type === 'withdraw' ? '💸' : h.type === 'task' ? '🏆' : '🍪';
+    const ttl  = h.type === 'sale'     ? `Продано ${h.cookies ?? '?'} куков`
+               : h.type === 'task'     ? (h.title ?? 'Задание')
+               : 'Вывод средств';
+    const row = document.createElement('div');
+    row.className = 'h-item';
+    row.innerHTML = `
+      <div class="h-ico">${ico}</div>
+      <div class="h-info">
+        <div class="h-ttl">${ttl}</div>
+        <div class="h-t">${relTime(h.time)}</div>
+      </div>
+      <div class="h-amt${plus ? '' : ' neg'}">${plus ? '+' : ''}${(h.amount ?? 0).toFixed(2)} ₽</div>`;
+    el.appendChild(row);
+  }
+}
+
+function relTime(iso) {
+  if (!iso) return '';
+  const d = Date.now() - new Date(iso);
+  if (d < 60000) return 'только что';
+  if (d < 3600000) return `${Math.floor(d/60000)} мин. назад`;
+  if (d < 86400000) return `${Math.floor(d/3600000)} ч. назад`;
+  return new Date(iso).toLocaleDateString('ru-RU', { day:'numeric', month:'short' });
+}
+
+/* ── Tabs ── */
+const loaded = { profile: false, wheel: true, tasks: false, history: false };
+
+qs('#tabs').addEventListener('click', e => {
+  const btn = e.target.closest('.tab');
+  if (!btn) return;
+  const tab = btn.dataset.tab;
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b === btn));
+  document.querySelectorAll('.sec').forEach(s => s.classList.toggle('active', s.id === 'sec-' + tab));
+  if (!loaded[tab]) {
+    loaded[tab] = true;
+    if (tab === 'tasks')   loadTasks();
+    if (tab === 'history') loadHistory();
+  }
+});
+
+/* ── Helpers ── */
+function qs(s) { return document.querySelector(s); }
+function toast(msg) {
+  const t = qs('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+/* ── Boot ── */
+loadProfile();
+loadTasks();
+</script>
+</body>
+</html>
+
+</body></html>
