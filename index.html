@@ -660,9 +660,9 @@ const ICONS = { sell_cookies:'🍪', sell_amount:'💰', invite_refs:'👥', mak
 let tasksCache = [];
 
 async function loadTasks() {
-  let d = null;
-  if (userId) d = await apiFetch(`/api/tasks?user_id=${userId}`);
-  tasksCache = d ?? [];   // пустой список если API недоступен
+  const url = userId ? `/api/tasks?user_id=${userId}` : '/api/tasks';
+  const d = await apiFetch(url);
+  tasksCache = d ?? [];
   renderTasks();
 }
 
