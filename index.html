@@ -325,21 +325,35 @@ const userId   = tg?.initDataUnsafe?.user?.id   ?? null;
 const userName = tg?.initDataUnsafe?.user?.first_name ?? 'Пользователь';
 
 /* ── API ──
-   Смените BASE_URL на адрес вашего VPS + порт бэкенда (api.py).
-   Например: "http://123.45.67.89:8001"
-   При локальной разработке оставьте пустую строку "".
+   BASE_URL = адрес бэкенда api.py через ngrok.
+   Узнать: в окне ngrok строка "Forwarding" → https://xxxxx.ngrok-free.app
+   Вставляй БЕЗ слэша в конце (лишние слэши срежутся сами).
 */
-const BASE_URL = 'https://ТВОЙ_NGROK.ngrok-free.app'; // ← замени на актуальный ngrok URL (без слэша в конце)
+let BASE_URL = 'https://provider-lapping-unseeing.ngrok-free.dev'; // ← ngrok URL (меняется при перезапуске ngrok!)
+BASE_URL = BASE_URL.replace(/\/+$/, '');   // срезаем хвостовые слэши
 
 async function apiFetch(path, opts = {}) {
   try {
     const r = await fetch(BASE_URL + path, {
       ...opts,
-      headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) }
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true', // БЕЗ этого ngrok отдаёт HTML-заглушку вместо JSON
+        ...(opts.headers || {})
+      }
     });
     if (!r.ok) return null;
+    // если прилетел не JSON (warning-страница ngrok) — не падаем молча
+    const ct = r.headers.get('content-type') || '';
+    if (!ct.includes('application/json')) {
+      console.warn('API вернул не JSON:', ct, '→ проверь BASE_URL и ngrok');
+      return null;
+    }
     return await r.json();
-  } catch { return null; }
+  } catch (e) {
+    console.warn('apiFetch error:', e, 'path=', path);
+    return null;
+  }
 }
 
 /* ── Level / rank system ──
