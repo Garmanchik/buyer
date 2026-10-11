@@ -292,7 +292,6 @@ body{
   <div class="sec" id="sec-tasks">
     <div class="tasks-hdr">
       <div class="tasks-hdr-ttl">Задания</div>
-      <div class="tasks-tmr">⏱ <span id="dTimer">—</span></div>
     </div>
     <div id="taskList"><div class="ld"><div class="spin"></div></div></div>
   </div>
@@ -330,7 +329,7 @@ const userName = tg?.initDataUnsafe?.user?.first_name ?? 'Пользовател
    Например: "http://123.45.67.89:8001"
    При локальной разработке оставьте пустую строку "".
 */
-const BASE_URL = 'https://YOUR_VPS_IP:8001';
+const BASE_URL = 'https://ТВОЙ_NGROK.ngrok-free.app'; // ← замени на актуальный ngrok URL (без слэша в конце)
 
 async function apiFetch(path, opts = {}) {
   try {
@@ -726,17 +725,7 @@ async function claimTask(id) {
   }
 }
 
-// daily reset countdown
-(function tickDaily() {
-  const now = new Date();
-  const mid = new Date(now); mid.setHours(24,0,0,0);
-  const d = mid - now;
-  const h = String(Math.floor(d/3600000)).padStart(2,'0');
-  const m = String(Math.floor((d%3600000)/60000)).padStart(2,'0');
-  const s = String(Math.floor((d%60000)/1000)).padStart(2,'0');
-  qs('#dTimer').textContent = `${h}:${m}:${s}`;
-  setTimeout(tickDaily, 1000);
-})();
+// daily reset countdown removed
 
 /* ── History ── */
 async function loadHistory() {
