@@ -1,4 +1,3 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -138,7 +137,17 @@ body{
 }
 .spin-btn:active{transform:scale(.97)}
 .spin-btn:disabled{background:var(--bg3);color:var(--fg3);box-shadow:none;cursor:default}
+.spin-counter{
+  font-size:13px;color:var(--green);text-align:center;
+  background:var(--card2);border:1px solid var(--border);
+  padding:6px 18px;border-radius:20px;
+}
 .spin-tmr{font-size:13px;color:var(--fg3);text-align:center}
+.spin-req{
+  font-size:12px;text-align:center;margin-top:-8px;
+  color:var(--fg3);
+}
+.spin-req strong{color:var(--green)}
 .win-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);animation:fadeIn .3s ease}
 .win-row:last-child{border-bottom:none}
 .win-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--green3),var(--green4));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
@@ -265,8 +274,12 @@ body{
       <div class="card-ttl">Колесо фортуны</div>
       <div class="wheel-wrap">
         <canvas id="wCanvas" width="280" height="280"></canvas>
+        <div class="spin-counter" id="spinCounter" style="display:none">
+          🎡 <strong id="spinCount">0</strong> прокруток
+        </div>
         <button class="spin-btn" id="spinBtn">🎯 Крутить!</button>
         <div class="spin-tmr" id="spinTmr"></div>
+        <div class="spin-req" id="spinReq"></div>
       </div>
     </div>
     <div class="card">
@@ -330,61 +343,45 @@ async function apiFetch(path, opts = {}) {
   } catch { return null; }
 }
 
-/* ── Level / rank system ── */
+/* ── Level / rank system ──
+   Каждые 100 куков = +1 уровень. Макс 999.
+   Rank — визуальный титул по номеру уровня.
+*/
 const RANKS = [
-  { min: 0,    label: '🌱 Новичок' },
-  { min: 100,  label: '🍪 Продавец' },
-  { min: 500,  label: '⚡ Активист' },
-  { min: 1500, label: '🔥 Профи' },
-  { min: 5000, label: '💎 Легенда' },
+  { min: 0,   label: '🌱 Новичок'  },
+  { min: 2,   label: '🍪 Продавец' },
+  { min: 3,   label: '⚡ Активист' },
+  { min: 5,   label: '🔥 Профи'    },
+  { min: 8,   label: '💎 Элита'    },
+  { min: 10,  label: '👑 Легенда'  },
 ];
-const LVL_THRESHOLDS = [0, 50, 150, 300, 500, 800, 1200, 1800, 2500, 5000];
 
 function getLevel(cookies) {
-  let lv = 1;
-  for (let i = 0; i < LVL_THRESHOLDS.length; i++) {
-    if (cookies >= LVL_THRESHOLDS[i]) lv = i + 1;
-  }
-  return lv;
+  return Math.min(999, Math.floor(cookies / 100) + 1);
 }
 function getXpInfo(cookies) {
-  const th = [...LVL_THRESHOLDS, Infinity];
-  let idx = 0;
-  for (let i = 0; i < th.length - 1; i++) if (cookies >= th[i]) idx = i;
-  const prev = th[idx], next = th[idx + 1];
-  const pct = next === Infinity ? 100 : Math.round(((cookies - prev) / (next - prev)) * 100);
-  const left = next === Infinity ? '∞' : `${next - cookies} куков`;
-  return { pct, left };
+  const lv = getLevel(cookies);
+  if (lv >= 999) return { pct: 100, left: '∞' };
+  const prev = (lv - 1) * 100;
+  const next = lv * 100;
+  const pct  = Math.round(((cookies - prev) / 100) * 100);
+  return { pct, left: `${next - cookies} куков` };
 }
 function getRank(cookies) {
+  const lv = getLevel(cookies);
   let r = RANKS[0];
-  for (const rk of RANKS) if (cookies >= rk.min) r = rk;
+  for (const rk of RANKS) if (lv >= rk.min) r = rk;
   return r;
 }
 
-/* ── Demo data ── */
-function demoProfile() {
+/* ── Пустой профиль (показывается когда API недоступен) ── */
+function emptyProfile() {
   return {
-    username: userName, balance: 347.50,
-    total_earned: 1820.0, total_cookies: 214,
-    total_sales: 38, referrals: [1, 2, 3],
-    referral_earnings: 91.0,
-    history: [
-      { type: 'sale',     amount: 87.5,  cookies: 7,  time: new Date(Date.now()-3e6).toISOString() },
-      { type: 'sale',     amount: 50.0,  cookies: 4,  time: new Date(Date.now()-8e6).toISOString() },
-      { type: 'task',     amount: 25.0,  title: 'Задание',  time: new Date(Date.now()-15e6).toISOString() },
-      { type: 'withdraw', amount: -200,               time: new Date(Date.now()-86400000).toISOString() },
-      { type: 'sale',     amount: 125.0, cookies: 10, time: new Date(Date.now()-172800000).toISOString() },
-    ]
+    username: userName,
+    balance: 0, total_earned: 0, total_cookies: 0, daily_cookies: 0,
+    total_sales: 0, referrals: [], referral_earnings: 0, history: [],
+    wheel_spins: 0,
   };
-}
-function demoTasks() {
-  return [
-    { id:'1', title:'Сдать 10 куков',     description:'Сдай 10 Roblox кук через бота', type:'sell_cookies',  goal:10,  reward:25.0,  active:true, progress:7,   claimed:false },
-    { id:'2', title:'Заработать 500 ₽',   description:'Накопи 500 ₽ с продаж',        type:'sell_amount',   goal:500, reward:50.0,  active:true, progress:347, claimed:false },
-    { id:'3', title:'Пригласить 3 друзей',description:'Пригласи 3 реферала',          type:'invite_refs',   goal:3,   reward:75.0,  active:true, progress:3,   claimed:false },
-    { id:'4', title:'Сделать вывод',       description:'Выведи деньги один раз',       type:'make_withdraw', goal:1,   reward:15.0,  active:true, progress:1,   claimed:true  },
-  ];
 }
 
 /* ── Profile ── */
@@ -393,7 +390,7 @@ let profileCache = null;
 async function loadProfile() {
   let d = null;
   if (userId) d = await apiFetch(`/api/profile?user_id=${userId}`);
-  if (!d) d = demoProfile();
+  if (!d) d = emptyProfile();   // реальные нули вместо фейка
   profileCache = d;
   renderProfile(d);
 }
@@ -431,21 +428,46 @@ function renderProfile(d) {
 
   qs('#profLd').style.display  = 'none';
   qs('#profCnt').style.display = 'block';
+
+  // После загрузки профиля пересчитываем доступность колеса
+  refreshWheelAccess();
 }
 
-/* ── Wheel ── */
+/* ── Wheel ──
+   weight — обратно пропорционален ценности: чем больше приз, тем ниже вес.
+   Формула: weight = BASE_WEIGHT / value  (нормализуется до 100% суммарно).
+   Можно менять BASE_WEIGHT для общей крутости; конкретные веса — в PRIZES.
+   WHEEL_MIN_COOKIES — минималка куков за день для доступа к спину.
+   Обе константы тянутся с /api/wheel_settings (или берутся дефолт).
+*/
 const PRIZES = [
-  { label:'5 ₽',   value:5,   color:'#14532d' },
-  { label:'10 ₽',  value:10,  color:'#15803d' },
-  { label:'25 ₽',  value:25,  color:'#166534' },
-  { label:'50 ₽',  value:50,  color:'#14532d' },
-  { label:'2 ₽',   value:2,   color:'#15803d' },
-  { label:'100 ₽', value:100, color:'#166534' },
-  { label:'7 ₽',   value:7,   color:'#14532d' },
-  { label:'20 ₽',  value:20,  color:'#15803d' },
+  { label:'2 ₽',   value:2,   color:'#166534', weight:50  },
+  { label:'5 ₽',   value:5,   color:'#15803d', weight:30  },
+  { label:'7 ₽',   value:7,   color:'#14532d', weight:22  },
+  { label:'10 ₽',  value:10,  color:'#15803d', weight:16  },
+  { label:'20 ₽',  value:20,  color:'#166534', weight:10  },
+  { label:'25 ₽',  value:25,  color:'#14532d', weight:8   },
+  { label:'50 ₽',  value:50,  color:'#15803d', weight:3   },
+  { label:'100 ₽', value:100, color:'#166534', weight:1   },
 ];
+
+/* Настройки колеса — перезапишутся из /api/wheel_settings при буте */
+let WHEEL_MIN_COOKIES  = 50;   // для информации в тексте (сколько нужно на спин)
+let WHEEL_COOKIES_PER_SPIN = 50;
+
 const SPIN_CD = 24 * 3600 * 1000;
 let wAngle = 0, wSpinning = false, cdInterval = null;
+
+/* Взвешенный случайный выбор индекса по полю weight */
+function weightedRandom(prizes) {
+  const total = prizes.reduce((s, p) => s + p.weight, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < prizes.length; i++) {
+    r -= prizes[i].weight;
+    if (r <= 0) return i;
+  }
+  return prizes.length - 1;
+}
 
 function drawWheel(angle) {
   const cvs = qs('#wCanvas');
@@ -473,7 +495,6 @@ function drawWheel(angle) {
     ctx.fillText(PRIZES[i].label, r - 8, 5);
     ctx.restore();
   }
-  // center
   ctx.beginPath();
   ctx.arc(cx, cy, 22, 0, Math.PI * 2);
   ctx.fillStyle = '#080e08';
@@ -481,7 +502,6 @@ function drawWheel(angle) {
   ctx.strokeStyle = '#4ade80';
   ctx.lineWidth = 2;
   ctx.stroke();
-  // pointer
   ctx.beginPath();
   ctx.moveTo(cx, 5);
   ctx.lineTo(cx - 9, 20);
@@ -492,36 +512,70 @@ function drawWheel(angle) {
 }
 drawWheel(0);
 
-function updateCooldownUI() {
+/* Накопленные прокрутки из профиля */
+function wheelSpins() {
+  return profileCache?.wheel_spins ?? 0;
+}
+
+/* Обновляем счётчик спинов и кнопку */
+function refreshWheelAccess() {
+  const spins = wheelSpins();
+  const ctr = qs('#spinCounter');
+  const cnt = qs('#spinCount');
+  if (ctr) {
+    ctr.style.display = spins > 0 ? '' : 'none';
+    if (cnt) cnt.textContent = spins;
+  }
+
   let last = 0;
   try { last = +localStorage.getItem('wheelSpin') || 0; } catch {}
-  const diff = SPIN_CD - (Date.now() - last);
-  const btn = qs('#spinBtn'), tmr = qs('#spinTmr');
+  const cdDiff = SPIN_CD - (Date.now() - last);
+  const btn = qs('#spinBtn');
+  const req = qs('#spinReq');
+
   clearInterval(cdInterval);
-  if (diff <= 0 || !last) {
-    btn.disabled = false;
-    tmr.textContent = 'Доступно сейчас!';
+
+  if (spins <= 0) {
+    btn.disabled = true;
+    qs('#spinTmr').textContent = '';
+    req.innerHTML = `Нет прокруток. Каждые <strong>${WHEEL_COOKIES_PER_SPIN}</strong> сданных куков = +1 🎡`;
     return;
   }
-  btn.disabled = true;
-  cdInterval = setInterval(() => {
-    const d = SPIN_CD - (Date.now() - last);
-    if (d <= 0) { clearInterval(cdInterval); updateCooldownUI(); return; }
-    const h = String(Math.floor(d / 3600000)).padStart(2,'0');
-    const m = String(Math.floor((d % 3600000) / 60000)).padStart(2,'0');
-    const s = String(Math.floor((d % 60000) / 1000)).padStart(2,'0');
-    tmr.textContent = `Следующий спин: ${h}:${m}:${s}`;
-  }, 1000);
+
+  if (cdDiff > 0 && last) {
+    // На кулдауне
+    btn.disabled = true;
+    req.innerHTML = `<strong>${spins}</strong> прокруток накоплено — подожди КД`;
+    cdInterval = setInterval(() => {
+      const d = SPIN_CD - (Date.now() - last);
+      if (d <= 0) { clearInterval(cdInterval); refreshWheelAccess(); return; }
+      const h = String(Math.floor(d / 3600000)).padStart(2,'0');
+      const m = String(Math.floor((d % 3600000) / 60000)).padStart(2,'0');
+      const s = String(Math.floor((d % 60000) / 1000)).padStart(2,'0');
+      qs('#spinTmr').textContent = `Следующий спин: ${h}:${m}:${s}`;
+    }, 1000);
+    return;
+  }
+
+  // КД прошёл, спины есть
+  qs('#spinTmr').textContent = '';
+  btn.disabled = false;
+  req.innerHTML = `<strong>${spins}</strong> прокруток. Удачи! 🎯`;
 }
 
 function spinWheel() {
   if (wSpinning) return;
+  if (wheelSpins() <= 0) {
+    toast(`🎡 Нет прокруток — сдай куки чтобы заработать`);
+    return;
+  }
   wSpinning = true;
   qs('#spinBtn').disabled = true;
+
   const n = PRIZES.length, arc = Math.PI * 2 / n;
-  const prizeIdx = Math.floor(Math.random() * n);
-  const spins = 5;
-  const delta = Math.PI * 2 * spins - prizeIdx * arc;
+  const prizeIdx = weightedRandom(PRIZES);
+  const rotations = 5;
+  const delta = Math.PI * 2 * rotations - prizeIdx * arc;
   const start = wAngle, dur = 4200;
   let t0 = null;
   function ease(t) { return 1 - Math.pow(1 - t, 4); }
@@ -533,34 +587,73 @@ function spinWheel() {
     if (p < 1) { requestAnimationFrame(frame); return; }
     wAngle %= Math.PI * 2;
     wSpinning = false;
-    try { localStorage.setItem('wheelSpin', Date.now()); } catch {}
-    updateCooldownUI();
+
     const prize = PRIZES[prizeIdx];
-    prependWin('Вы', prize.label);
-    toast(`🎉 Вы выиграли ${prize.label}!`);
+
+    // Фиксируем на сервере (потребляет 1 прокрутку, начисляет баланс)
+    if (userId) {
+      apiFetch('/api/wheel_spin', {
+        method: 'POST',
+        body: JSON.stringify({
+          user_id:     userId,
+          prize_label: prize.label,
+          prize_value: prize.value,
+        })
+      }).then(res => {
+        if (res?.ok) {
+          // Обновляем профиль локально
+          if (profileCache) {
+            profileCache.balance = (profileCache.balance ?? 0) + prize.value;
+            qs('#hBal').textContent = `${profileCache.balance.toFixed(2)} ₽`;
+            // Уменьшаем счётчик прокруток (сервер уже списал)
+            profileCache.wheel_spins = res.spins_left ?? Math.max(0, (profileCache.wheel_spins ?? 0) - 1);
+          }
+          loadWheelWins();
+          try { localStorage.setItem('wheelSpin', Date.now()); } catch {}
+          refreshWheelAccess();
+          toast(`🎉 Вы выиграли ${prize.label}! +${prize.value} ₽`);
+        } else {
+          toast('❌ Нет прокруток или кулдаун');
+          refreshWheelAccess();
+        }
+      });
+    } else {
+      // Нет userId — просто показываем без записи
+      try { localStorage.setItem('wheelSpin', Date.now()); } catch {}
+      refreshWheelAccess();
+      toast(`🎉 Вы выиграли ${prize.label}!`);
+    }
   }
   requestAnimationFrame(frame);
 }
 
 qs('#spinBtn').addEventListener('click', spinWheel);
-updateCooldownUI();
+refreshWheelAccess();
 
-function prependWin(name, prize) {
+/* ── Лента последних выигрышей (реальные данные с сервера) ── */
+function renderWins(wins) {
   const el = qs('#winsList');
-  const row = document.createElement('div');
-  row.className = 'win-row';
-  row.innerHTML = `<div class="win-av">${name[0].toUpperCase()}</div><div class="win-name">${name}</div><div class="win-prize">${prize}</div>`;
-  el.prepend(row);
-}
-// demo wins feed
-[{n:'Иван К.',p:'50 ₽'},{n:'Лиса',p:'10 ₽'},{n:'Ghost',p:'25 ₽'},{n:'Катя',p:'100 ₽'},{n:'Max_99',p:'7 ₽'}]
-  .forEach(({n,p}) => {
-    const el = qs('#winsList');
+  if (!wins.length) {
+    el.innerHTML = '<div style="color:var(--fg3);text-align:center;padding:20px;font-size:13px">Выигрышей пока нет</div>';
+    return;
+  }
+  el.innerHTML = '';
+  for (const w of wins) {
+    const name = w.username || '???';
     const row = document.createElement('div');
     row.className = 'win-row';
-    row.innerHTML = `<div class="win-av">${n[0]}</div><div class="win-name">${n}</div><div class="win-prize">${p}</div>`;
-    el.append(row);
-  });
+    row.innerHTML = `
+      <div class="win-av">${name[0].toUpperCase()}</div>
+      <div class="win-name">${name}</div>
+      <div class="win-prize">${w.prize}</div>`;
+    el.appendChild(row);
+  }
+}
+
+async function loadWheelWins() {
+  const wins = await apiFetch('/api/wheel_wins?limit=20');
+  renderWins(wins ?? []);
+}
 
 /* ── Tasks ── */
 const ICONS = { sell_cookies:'🍪', sell_amount:'💰', invite_refs:'👥', make_withdraw:'💸' };
@@ -569,8 +662,7 @@ let tasksCache = [];
 async function loadTasks() {
   let d = null;
   if (userId) d = await apiFetch(`/api/tasks?user_id=${userId}`);
-  if (!d) d = demoTasks();
-  tasksCache = d;
+  tasksCache = d ?? [];   // пустой список если API недоступен
   renderTasks();
 }
 
@@ -650,7 +742,7 @@ async function claimTask(id) {
 async function loadHistory() {
   let d = null;
   if (userId) d = await apiFetch(`/api/profile?user_id=${userId}`);
-  const hist = (d?.history ?? demoProfile().history).slice().reverse();
+  const hist = (d?.history ?? []).slice().reverse();
   renderHistory(hist);
 }
 
@@ -690,7 +782,7 @@ function relTime(iso) {
 }
 
 /* ── Tabs ── */
-const loaded = { profile: false, wheel: true, tasks: false, history: false };
+const loaded = { profile: false, wheel: false, tasks: false, history: false };
 
 qs('#tabs').addEventListener('click', e => {
   const btn = e.target.closest('.tab');
@@ -700,6 +792,7 @@ qs('#tabs').addEventListener('click', e => {
   document.querySelectorAll('.sec').forEach(s => s.classList.toggle('active', s.id === 'sec-' + tab));
   if (!loaded[tab]) {
     loaded[tab] = true;
+    if (tab === 'wheel')   loadWheelWins();
     if (tab === 'tasks')   loadTasks();
     if (tab === 'history') loadHistory();
   }
@@ -717,8 +810,14 @@ function toast(msg) {
 /* ── Boot ── */
 loadProfile();
 loadTasks();
+loadWheelWins();
+
+// Настройки колеса
+apiFetch('/api/wheel_settings').then(s => {
+  if (s?.min_cookies != null)      WHEEL_MIN_COOKIES      = s.min_cookies;
+  if (s?.cookies_per_spin != null) WHEEL_COOKIES_PER_SPIN = s.cookies_per_spin;
+  refreshWheelAccess();
+});
 </script>
 </body>
 </html>
-
-</body></html>
